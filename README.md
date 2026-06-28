@@ -10,7 +10,7 @@ En adoptant une approche **Full-Stack Data Analyst / Analytics Engineer**, ce pr
 ## 🏗️ Architecture du Pipeline & Flux de Données
 
 Le projet respecte l'isolation des environnements via des schémas SQL distincts pour garantir la robustesse du système :
-```
+```text
 [ Données Brutes (OLTP) ]     ──> Schéma public (Source de vérité / Inchangé)
         │
         │                           (Transformations SQL Complexes)
