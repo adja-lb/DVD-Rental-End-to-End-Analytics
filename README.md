@@ -1,7 +1,8 @@
 # 🎬 DVD Rental - End-to-End Analytics
+<img width="646" height="430" alt="illustration_rental" src="https://github.com/user-attachments/assets/f40b82c3-4e6b-444c-a770-1ba2d9768747" />
 
 ## 📌 Présentation du Projet
-L'objectif de ce projet est de transformer une base de données transactionnelle brute (OLTP) d'un réseau de magasins de location de DVD (`dvdrental`) en un **modèle de données sémantique décisionnel (OLAP) en étoile**. 
+L'objectif de ce projet est de transformer une base de données transactionnelle brute (OLTP) d'un réseau de magasins de location de DVD (`dvdrental` téléchargeable [ici](https://neon.com/postgresql/getting-started/sample-database)) en un **modèle de données sémantique décisionnel (OLAP) en étoile**. 
 
 En adoptant une approche **Full-Stack Data Analyst / Analytics Engineer**, ce projet couvre l'intégralité du pipeline data : de l'isolation de l'infrastructure sous **Docker (PostgreSQL)**, à la modélisation dimensionnelle selon la méthodologie **Kimball**, jusqu'à la création d'un tableau de bord décisionnel dans **Power BI**.
 
