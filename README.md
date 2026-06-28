@@ -1,4 +1,4 @@
-# 🎬 DVD Rental Analytics - End-to-End Analytics Engineering Project
+# 🎬 DVD Rental - End-to-End Analytics
 
 ## 📌 Présentation du Projet
 L'objectif de ce projet est de transformer une base de données transactionnelle brute (OLTP) d'un réseau de magasins de location de DVD (`dvdrental`) en un **modèle de données sémantique décisionnel (OLAP) en étoile**. 
@@ -10,7 +10,7 @@ En adoptant une approche **Full-Stack Data Analyst / Analytics Engineer**, ce pr
 ## 🏗️ Architecture du Pipeline & Flux de Données
 
 Le projet respecte l'isolation des environnements via des schémas SQL distincts pour garantir la robustesse du système :
-
+```
 [ Données Brutes (OLTP) ]     ──> Schéma public (Source de vérité / Inchangé)
         │
         │                           (Transformations SQL Complexes)
@@ -20,7 +20,7 @@ Le projet respecte l'isolation des environnements via des schémas SQL distincts
         │                           (Connexion Directe Optimisée)
         ▼  
 [ Restitution ]               ──> Power BI Desktop (Modèle Sémantique & DAX)
-
+```
 ---
 
 ## 🎯 Problématique Business & Questions Clés
