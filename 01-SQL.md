@@ -46,7 +46,7 @@ ALTER TABLE analytics.dim_customers ADD PRIMARY KEY (customer_id);
 
 
 Bien qu'il n'y ait que deux `stores` et un `manager` par store, j'ai fait le choix d'établir une table des dimensions pour les magains pour:
-- L'évolutivité (Scalability) : Aujourd'hui, la chaîne de DVD n'a que 2 magasins. Mais si demain elle fait une levée de fonds et ouvre de nouvelles boutiques, le modèle en étoile restera identique. Il suffira d'ajouter des lignes dans la table `dim_stores` sans toucher aux rapports Power BI.
+- L'évolutivité (Scalability) : Aujourd'hui, la chaîne de DVD n'a que 2 magasins. Mais si demain elle devait ouvrir de nouvelles boutiques, le modèle en étoile restera identique, et il suffira d'ajouter des lignes dans la table `dim_stores` sans toucher aux rapports Power BI. Bon, Netflix est passé par là et ce secteur a totalement disparu depuis de nombreuses années, mais la logique est là ;)
 
 ```sql
 DROP TABLE IF EXISTS analytics.dim_stores;
