@@ -71,6 +71,27 @@ LEFT JOIN public.country co ON ci.country_id = co.country_id;
 ALTER TABLE analytics.dim_stores ADD PRIMARY KEY (store_id);
 ```
 
+On crée une table de dimension temporelle dédiée grâce à la fonction `generate_series`.
+Cette table permet notamment de faire des comparaisons d'une année sur l'autre type YoY.
+```sql
+DROP TABLE IF EXISTS analytics.dim_date;
+
+CREATE TABLE analytics.dim_date AS
+SELECT 
+    datum::date AS date_key,
+    EXTRACT(YEAR FROM datum)::int AS annee,
+    EXTRACT(QUARTER FROM datum)::int AS trimestre,
+    EXTRACT(MONTH FROM datum)::int AS mois_numero,
+    TO_CHAR(datum, 'TMMonth') AS mois_nom, -- Nom du mois en français (selon la conf de ta DB)
+    EXTRACT(DAY FROM datum)::int AS jour_numero,
+    EXTRACT(ISODOW FROM datum)::int AS jour_semaine_numero,
+    TO_CHAR(datum, 'TMDay') AS jour_semaine_nom, -- Nom du jour en français
+    CASE WHEN EXTRACT(ISODOW FROM datum) IN (6, 7) THEN 'Week-end' ELSE 'Semaine' END AS type_jour
+FROM generate_series('2005-01-01'::date, '2006-12-31'::date, '1 day'::interval) datum;
+
+ALTER TABLE analytics.dim_date ADD PRIMARY KEY (date_key);
+```
+
 Pour créer analytics.dim_films, nous allons faire des LEFT JOIN entre ces quatre tables du schéma public :
 - `public.film` (La table centrale)
 - `public.film_category` (La table de liaison pour les catégories)
@@ -154,4 +175,5 @@ LEFT JOIN public.payment p ON r.rental_id = p.rental_id;
 ALTER TABLE analytics.fact_rentals ADD PRIMARY KEY (rental_id);
 ```
 
-<img width="835" height="773" alt="Capture d&#39;écran 2026-06-28 203045" src="https://github.com/user-attachments/assets/1d0ac2db-0797-4935-8104-4d83d5c57e21" />
+<img width="850" height="763" alt="Capture d&#39;écran 2026-06-28 213319" src="https://github.com/user-attachments/assets/74dc140b-82d3-449b-8d5d-6011ac35216b" />
+
