@@ -1,12 +1,22 @@
 
 
+<img width="128" height="157" alt="dvd-rental-sample-database-diagram" src="https://github.com/user-attachments/assets/e082c83d-eb02-4efd-88e7-d7dc1cc05bff" />
 
-<img width="835" height="773" alt="Capture d&#39;écran 2026-06-28 203045" src="https://github.com/user-attachments/assets/1d0ac2db-0797-4935-8104-4d83d5c57e21" />
 
+Création d'un nouveau schéma `analytics` où nous créerons les différentes tables de dimensions et des faits.
 ```sql
 CREATE SCHEMA analytics;
 ```
 
+Dans le schéma public, les informations géographiques et d'identité de tes clients sont fragmentées à l'extrême (une table pour le client, une pour son adresse, une pour sa ville, et une pour son pays). 
+
+Nous allons rassembler toutes ces données en une seule ligne par client grâce à des jointures successives :
+- `public.customer` (L'identité : nom, prénom, email, statut actif)
+- `public.address` (L'adresse physique et le code postal)
+- `public.city` (Le nom de la ville)
+- `public.country` (Le nom du pays)
+
+    
 ```sql
 CREATE TABLE analytics.dim_customers AS
 SELECT
@@ -21,6 +31,12 @@ JOIN public.address a ON c.address_id = a.address_id
 JOIN public.city ci ON a.city_id = ci.city_id
 JOIN public.country co ON ci.country_id = co.country_id;
 ```
+
+Pour créer analytics.dim_films, nous allons faire des LEFT JOIN entre ces quatre tables du schéma public :
+- `public.film` (La table centrale)
+- `public.film_category` (La table de liaison pour les catégories)
+- `public.category` (Pour avoir le nom textuel de la catégorie)
+- `public.language` (Pour avoir le nom de la langue au lieu d'un ID)
 
 ```sql
 -- Sécurité : Supprime la table si tu veux rejouer le script
@@ -149,3 +165,4 @@ LEFT JOIN public.actor a ON fa.actor_id = a.actor_id;
 -- Clé primaire composite pour garantir l'unicité du couple Film-Acteur
 ALTER TABLE analytics.dim_actors_bridge ADD PRIMARY KEY (film_id, actor_id);
 ```
+<img width="835" height="773" alt="Capture d&#39;écran 2026-06-28 203045" src="https://github.com/user-attachments/assets/1d0ac2db-0797-4935-8104-4d83d5c57e21" />
