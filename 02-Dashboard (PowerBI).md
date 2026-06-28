@@ -8,7 +8,7 @@ Pour rappel, notre projet tente de répondre à 3 questions stratégiques :
 4. **[Saisonnalité & Comportement](saisonnalité-&-comportement) :** Quels sont les cycles temporels de location (mois, jours de la semaine) et les délais moyens de restitution ?
 
 
-## Formules DAX
+## :heavy_division_sign: Formules DAX
 Afin de compléter l'analyse, nous allons implémenter de nouvelles mesures dans la table des faits `fact_rentals`:
 - Chiffre d'Affaires : `Chiffre_Affaires = SUM(fact_rentals[montant_paye])`
 - Volume des ventes : `Nombre_Locations = COUNT(fact_rentals[rental_id])`
