@@ -1,8 +1,0 @@
-# :dashboard: Dashboard avec Power BI
-
-## Formules DAX
-Afin de compléter l'analyse, nous allons implémenter de nouvelles mesures dans la table des faits `fact_rentals`:
-- Chiffre d'Affaires : `Chiffre_Affaires = SUM(fact_rentals[montant_paye])`
-- Volume des ventes : `Nombre_Locations = COUNT(fact_rentals[rental_id])`
-- Panier moyen : `Panier_Moyen = DIVIDE([Chiffre_Affaires], [Nombre_Locations], 0)`
-
