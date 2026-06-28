@@ -16,67 +16,11 @@ Nous allons rassembler toutes ces données en une seule ligne par client grâce 
 - `public.city` (Le nom de la ville)
 - `public.country` (Le nom du pays)
 
-    
-```sql
-CREATE TABLE analytics.dim_customers AS
-SELECT
-    c.customer_id,
-    c.first_name || ' ' || c.last_name AS full_name,
-    c.email,
-    a.address,
-    ci.city,
-    co.country
-FROM public.customer c
-JOIN public.address a ON c.address_id = a.address_id
-JOIN public.city ci ON a.city_id = ci.city_id
-JOIN public.country co ON ci.country_id = co.country_id;
-```
-
-Pour créer analytics.dim_films, nous allons faire des LEFT JOIN entre ces quatre tables du schéma public :
-- `public.film` (La table centrale)
-- `public.film_category` (La table de liaison pour les catégories)
-- `public.category` (Pour avoir le nom textuel de la catégorie)
-- `public.language` (Pour avoir le nom de la langue au lieu d'un ID)
-
 ```sql
 -- Sécurité : Supprime la table si tu veux rejouer le script
-DROP TABLE IF EXISTS analytics.dim_films;
-
--- Création de la table dimensionnelle
--- Dans le schéma public, les informations d'un film sont éparpillées :
--- le titre est dans film, la catégorie est dans category (via une table intermédiaire film_category),
--- et la langue est dans language
-CREATE TABLE analytics.dim_films AS
-SELECT
-    f.film_id,
-    f.title AS titre_film,
-    f.description,
-    f.release_year AS annee_sortie,
-    f.rental_duration AS duree_location_autorisee,
-    f.rental_rate AS tarif_location,
-    f.length AS duree_film_minutes,
-    f.replacement_cost AS cout_remplacement,
-    f.rating AS classification,
-    l.name AS langue,
-    c.name AS categorie_genre
-FROM public.film f
-LEFT JOIN public.language l ON f.language_id = l.language_id
-LEFT JOIN public.film_category fc ON f.film_id = fc.film_id
-LEFT JOIN public.category c ON fc.category_id = c.category_id;
-
--- Optionnel : Ajouter une clé primaire pour que DataGrip/DBeaver indexe bien la table
-ALTER TABLE analytics.dim_films ADD PRIMARY KEY (film_id);
-```
-
-```sql
--- Sécurité : Supprime la table si elle existe déjà
 DROP TABLE IF EXISTS analytics.dim_customers;
 
--- Création de la table dimensionnelle des clients
--- Sécurité : Supprime la table si elle existe déjà
-DROP TABLE IF EXISTS analytics.dim_customers;
-
--- Création de la table dimensionnelle des clients (CORRIGÉE)
+-- Création de la table dimensionnelle des clients 
 CREATE TABLE analytics.dim_customers AS
 SELECT
     c.customer_id,
@@ -98,7 +42,91 @@ LEFT JOIN public.country co ON ci.country_id = co.country_id;
 
 -- Ajout de la clé primaire
 ALTER TABLE analytics.dim_customers ADD PRIMARY KEY (customer_id);
+```    
+
+
+Bien qu'il n'y ait que deux `stores` et un `manager` par store, j'ai fait le choix d'établir une table des dimensions pour les magains pour:
+- L'évolutivité (Scalability) : Aujourd'hui, la chaîne de DVD n'a que 2 magasins. Mais si demain elle fait une levée de fonds et ouvre de nouvelles boutiques, le modèle en étoile restera identique. Il suffira d'ajouter des lignes dans la table `dim_stores` sans toucher aux rapports Power BI.
+
+```sql
+DROP TABLE IF EXISTS analytics.dim_stores;
+
+-- Création de la table dimensionnelle des magasins
+CREATE TABLE analytics.dim_stores AS
+SELECT 
+    s.store_id,
+    st.first_name || ' ' || st.last_name AS nom_manager,
+    'Boutique N°' || s.store_id AS nom_boutique,
+    a.address AS adresse,
+    a.postal_code AS code_postal,
+    ci.city AS ville,
+    co.country AS pays
+FROM public.store s
+LEFT JOIN public.staff st ON s.manager_staff_id = st.staff_id
+LEFT JOIN public.address a ON s.address_id = a.address_id
+LEFT JOIN public.city ci ON a.city_id = ci.city_id
+LEFT JOIN public.country co ON ci.country_id = co.country_id;
+
+-- Ajout de la primary key
+ALTER TABLE analytics.dim_stores ADD PRIMARY KEY (store_id);
 ```
+
+Pour créer analytics.dim_films, nous allons faire des LEFT JOIN entre ces quatre tables du schéma public :
+- `public.film` (La table centrale)
+- `public.film_category` (La table de liaison pour les catégories)
+- `public.category` (Pour avoir le nom textuel de la catégorie)
+- `public.language` (Pour avoir le nom de la langue au lieu d'un ID)
+
+```sql
+DROP TABLE IF EXISTS analytics.dim_films;
+
+CREATE TABLE analytics.dim_films AS
+SELECT 
+    f.film_id,
+    f.title AS titre_film,
+    f.description,
+    f.release_year AS annee_sortie,
+    f.rental_duration AS duree_location_autorisee,
+    f.rental_rate AS tarif_location,
+    f.length AS duree_film_minutes,
+    f.replacement_cost AS cout_remplacement,
+    f.rating AS classification,
+    l.name AS langue,
+    c.name AS categorie_genre
+FROM public.film f
+LEFT JOIN public.language l ON f.language_id = l.language_id
+LEFT JOIN public.film_category fc ON f.film_id = fc.film_id
+LEFT JOIN public.category c ON fc.category_id = c.category_id;
+
+ALTER TABLE analytics.dim_films ADD PRIMARY KEY (film_id);
+```
+
+On crée une table intermédiaire `dim_actors_bridge` pour lier les films et les acteurs. Cela permet un niveau d'approfondissement avec l'application d'un filtre dans le dashboard avec le nom d'un acteur et voir tous ses films.
+```sql
+DROP TABLE IF EXISTS analytics.dim_actors_bridge;
+
+CREATE TABLE analytics.dim_actors_bridge AS
+SELECT 
+    fa.film_id,
+    a.actor_id,
+    a.first_name || ' ' || a.last_name AS nom_acteur
+FROM public.film_actor fa
+LEFT JOIN public.actor a ON fa.actor_id = a.actor_id;
+
+-- Clé primaire composite pour garantir l'unicité du couple Film-Acteur
+ALTER TABLE analytics.dim_actors_bridge ADD PRIMARY KEY (film_id, actor_id);
+```
+
+
+Une table de faits doit être construite au grain le plus fin. Notre grain est : Une transaction de location.
+Cependant, dans dvdrental, les dates de location sont dans la table rental, mais l'argent (les montants) est dans la table payment.
+
+Nous allons donc lier :
+- `public.rental` : Pour avoir l'ID du film loué via l'inventaire, les dates de départ et de retour.
+- `public.inventory` : Table intermédiaire obligatoire dans public pour savoir quel film_id correspond à la location.
+- `public.payment` : Pour récupérer le montant exact payé pour cette location.
+
+On va en profiter pour calculer une métrique métier directement en SQL : la durée réelle de rétention du DVD par le client (en jours).
 
 ```sql
 -- Sécurité : Supprime la table si elle existe déjà
@@ -126,43 +154,4 @@ LEFT JOIN public.payment p ON r.rental_id = p.rental_id;
 ALTER TABLE analytics.fact_rentals ADD PRIMARY KEY (rental_id);
 ```
 
-```sql
--- Sécurité : Supprime la table si elle existe déjà
-DROP TABLE IF EXISTS analytics.dim_stores;
-
-CREATE TABLE analytics.dim_films AS
-SELECT
-    f.film_id,
-    f.title AS titre_film,
-    f.description,
-    f.release_year AS annee_sortie,
-    f.rental_duration AS duree_location_autorisee,
-    f.rental_rate AS tarif_location,
-    f.length AS duree_film_minutes,
-    f.replacement_cost AS cout_remplacement,
-    f.rating AS classification,
-    l.name AS langue,
-    c.name AS categorie_genre
-FROM public.film f
-LEFT JOIN public.language l ON f.language_id = l.language_id
-LEFT JOIN public.film_category fc ON f.film_id = fc.film_id
-LEFT JOIN public.category c ON fc.category_id = c.category_id;
-
-ALTER TABLE analytics.dim_films ADD PRIMARY KEY (film_id);
-```
-
-```sql
-DROP TABLE IF EXISTS analytics.dim_actors_bridge;
-
-CREATE TABLE analytics.dim_actors_bridge AS
-SELECT
-    fa.film_id,
-    a.actor_id,
-    a.first_name || ' ' || a.last_name AS nom_acteur
-FROM public.film_actor fa
-LEFT JOIN public.actor a ON fa.actor_id = a.actor_id;
-
--- Clé primaire composite pour garantir l'unicité du couple Film-Acteur
-ALTER TABLE analytics.dim_actors_bridge ADD PRIMARY KEY (film_id, actor_id);
-```
 <img width="835" height="773" alt="Capture d&#39;écran 2026-06-28 203045" src="https://github.com/user-attachments/assets/1d0ac2db-0797-4935-8104-4d83d5c57e21" />
