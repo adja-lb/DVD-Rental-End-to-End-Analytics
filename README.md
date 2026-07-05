@@ -60,7 +60,7 @@ Pour casser la complexité des jointures d'origine (Flocon étendu), le schéma 
 - [x] **Étape 2 :** Restauration de la base source binaire (`dvdrental.tar`) et isolation via le schéma `public`.
 - [x] **Étape 3 :** Écriture des scripts de transformation SQL et création du schéma `analytics`.
 - [x] **Étape 4 :** Connexion optimisée à Power BI et configuration du modèle sémantique.
-- [ ] **Étape 5 :** Design du Dashboard (Optimisation de la charge cognitive & UI/UX) et calcul du ROI fictif.
+- [x] **Étape 5 :** Design du Dashboard (Optimisation de la charge cognitive & UI/UX) et calcul du ROI fictif.
 
 ---
 
